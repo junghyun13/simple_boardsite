@@ -1,0 +1,78 @@
+<html xmlns:th="http://www.thymeleaf.org">
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>게시판 목록보기</title>
+    <link rel="stylesheet" href="board.css" />
+</head>
+<body>
+<section class="board">
+    <div class="page-title">
+        <div class="container">
+            <h3>정현이네 게시판 - 글 목록보기</h3>
+        </div>
+    </div>
+
+    <!-- 로그인 정보 -->
+    <div class="login-info">
+        <div class="container">
+            <span th:if="${loginInfo != null}">
+                로그인 사용자: <span th:text="${loginInfo.name}"></span>
+                <a href="/logout">로그아웃</a>
+            </span>
+            <span th:if="${loginInfo == null}">
+                <a href="/loginform">로그인</a> | <a href="/userRegForm">회원가입</a>
+            </span>
+        </div>
+    </div>
+
+    <!-- 게시글 목록 -->
+    <div id="board-list">
+        <div class="container">
+            <table class="board-table">
+                <thead>
+                <tr>
+                    <th scope="col">번호</th>
+                    <th scope="col">제목</th>
+                    <th scope="col">조회수</th>
+                    <th scope="col">작성자</th>
+                    <th scope="col">등록일</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr th:each="board : ${list}">
+                    <td th:text="${board.boardId}"></td>
+                    <td>
+                        <a th:href="@{/board(boardId=${board.boardId})}" th:text="${board.title}"></a>
+                    </td>
+                    <td th:text="${board.viewCnt}"></td>
+                    <td th:text="${board.user.name}"></td>
+                    <td th:text="${board.regdate.format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm'))}"></td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(list)}">
+                    <td colspan="5">등록된 게시글이 없습니다.</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 글쓰기 버튼 -->
+        <div>
+            <a href="/writeForm" th:if="${loginInfo != null}">글쓰기</a>
+            <span th:if="${loginInfo == null}">로그인 후 글쓰기가 가능합니다.</span>
+        </div>
+
+        <!-- 페이지네이션 -->
+        <div>
+            <span th:each="n : ${#numbers.sequence(1, pageCount)}">
+                <a th:href="@{/?page=${n}}" th:text="${n}"></a>
+            </span>
+        </div>
+    </div>
+</section>
+</body>
+</html>
+
