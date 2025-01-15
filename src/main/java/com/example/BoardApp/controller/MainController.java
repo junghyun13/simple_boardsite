@@ -1,10 +1,12 @@
 package com.example.BoardApp.controller;
 
 import com.example.BoardApp.dto.Board;
+import com.example.BoardApp.dto.Comment;
 import com.example.BoardApp.dto.LoginInfo;
 import com.example.BoardApp.dto.User;
 import com.example.BoardApp.repository.BoardRepository;
 import com.example.BoardApp.service.BoardService;
+import com.example.BoardApp.service.CommentService;
 import com.example.BoardApp.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import lombok.RequiredArgsConstructor;
@@ -16,7 +18,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Controller
 @RequiredArgsConstructor
@@ -26,6 +30,7 @@ public class MainController {
 
     private final UserService userService;
     private final BoardService boardService;
+    private final CommentService commentService;
 
     // 회원가입 페이지
     @GetMapping("/userRegForm")
@@ -88,34 +93,81 @@ public class MainController {
     @GetMapping("/")
     public String list(
             @RequestParam(name = "page", defaultValue = "1") int page,
+            @RequestParam(name = "kw", required = false) String keyword,
+            @RequestParam(name = "kwType", required = false) List<String> kwTypes,
             HttpSession session,
             Model model
     ) {
         LoginInfo loginInfo = (LoginInfo) session.getAttribute("loginInfo");
         model.addAttribute("loginInfo", loginInfo);
 
+        // 검색 조건 처리
+        List<Board> list;
+        if (keyword != null && kwTypes != null) {
+            list = boardService.searchBoards(keyword, kwTypes, page);
+        } else {
+            list = boardService.getBoards(page);
+        }
+
+        // 게시글 총 개수 및 페이지 수 계산
         int totalCount = boardService.getTotalCount();
-        List<Board> list = boardService.getBoards(page);
         int pageCount = (totalCount + 9) / 10;
 
-        System.out.println("게시글 총 개수: " + totalCount);
-        System.out.println("게시글 목록: " + list);
-        System.out.println("현재 페이지: " + page);
+        // kwTypesMap 초기화 및 값 설정
+        Map<String, Boolean> kwTypesMap = new HashMap<>();
+        kwTypesMap.put("authorUsername", kwTypes != null && kwTypes.contains("authorUsername"));
+        kwTypesMap.put("title", kwTypes != null && kwTypes.contains("title"));
+        kwTypesMap.put("tagContent", kwTypes != null && kwTypes.contains("tagContent"));
+        kwTypesMap.put("commentAuthorUsername", kwTypes != null && kwTypes.contains("commentAuthorUsername"));
+        kwTypesMap.put("commentBody", kwTypes != null && kwTypes.contains("commentBody"));
 
+        // 모델에 추가
         model.addAttribute("list", list);
         model.addAttribute("pageCount", pageCount);
         model.addAttribute("currentPage", page);
+        model.addAttribute("kwTypesMap", kwTypesMap);
+
 
         return "listin";
     }
 
 
-    // 게시글 상세 보기
     @GetMapping("/board")
-    public String board(@RequestParam("boardId") int boardId, Model model) {
+    public String board(@RequestParam("boardId") int boardId, Model model, HttpSession session) {
         Board board = boardService.getBoard(boardId);
+        List<Comment> comments = commentService.getCommentsByBoardId(boardId);
+
+        // 로그인 정보 디버깅
+        LoginInfo loginInfo = (LoginInfo) session.getAttribute("loginInfo");
+        if (loginInfo != null) {
+            System.out.println("로그인 사용자 ID: " + loginInfo.getUserId());
+        } else {
+            System.out.println("로그인 정보가 없습니다.");
+        }
+
+        // 게시글 정보 디버깅
+        System.out.println("게시글 작성자 ID: " + board.getUser().getUserId());
+
         model.addAttribute("board", board);
+        model.addAttribute("comments", comments);
+        model.addAttribute("loginInfo", loginInfo);
+
         return "board";
+    }
+
+    @PostMapping("/comment")
+    public String addComment(
+            @RequestParam("boardId") int boardId,
+            @RequestParam("content") String content,
+            HttpSession session
+    ) {
+        LoginInfo loginInfo = (LoginInfo) session.getAttribute("loginInfo");
+        if (loginInfo == null) {
+            return "redirect:/loginform";
+        }
+
+        commentService.addComment(boardId, loginInfo.getUserId(), content);
+        return "redirect:/board?boardId=" + boardId;
     }
 
     // 게시글 작성 폼

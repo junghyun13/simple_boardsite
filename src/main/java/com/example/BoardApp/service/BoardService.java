@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -59,6 +60,23 @@ public class BoardService {
 
         return board;
     }
+
+    public List<Board> searchBoards(String keyword, List<String> kwTypes, int page) {
+        List<Board> results = new ArrayList<>();
+
+        if (kwTypes.contains("title")) {
+            results.addAll(boardRepository.findByTitleContaining(keyword));
+        }
+        if (kwTypes.contains("authorUsername")) {
+            results.addAll(boardRepository.findByUser_NameContaining(keyword));
+        }
+        if (kwTypes.contains("tagContent")) {
+            results.addAll(hashTagRepository.findByTag(keyword).stream().map(HashTag::getBoard).toList());
+        }
+        // 중복 제거
+        return results.stream().distinct().toList();
+    }
+
 
     public List<Board> getBoardsByTag(String tag) {
         List<HashTag> hashTags = hashTagRepository.findByTag(tag);

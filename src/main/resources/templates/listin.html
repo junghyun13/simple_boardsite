@@ -29,6 +29,20 @@
         </div>
     </div>
 
+    <!-- 검색 폼 -->
+    <div id="search-form">
+        <form action="/" method="get">
+            <label><input type="checkbox" name="kwType" value="authorUsername"
+                          th:checked="${kwTypesMap != null and kwTypesMap['authorUsername']}" /> <span>작성자</span></label>
+            <label><input type="checkbox" name="kwType" value="title"
+                          th:checked="${kwTypesMap != null and kwTypesMap['title']}" /> <span>제목</span></label>
+            <label><input type="checkbox" name="kwType" value="tagContent"
+                          th:checked="${kwTypesMap != null and kwTypesMap['tagContent']}" /> <span>태그</span></label>
+            <input type="search" name="kw" placeholder="검색어" th:value="${param.kw}"/>
+            <input type="submit" value="검색"/>
+        </form>
+    </div>
+
     <!-- 게시글 목록 -->
     <div id="board-list">
         <div class="container">
@@ -60,7 +74,7 @@
                     <td th:text="${board.regdate.format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm'))}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(list)}">
-                    <td colspan="6">등록된 게시글이 없습니다.</td>
+                    <td colspan="6">검색 결과가 없습니다.</td>
                 </tr>
                 </tbody>
             </table>

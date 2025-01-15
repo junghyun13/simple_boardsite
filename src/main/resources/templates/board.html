@@ -8,7 +8,8 @@
     <title>게시물 상세보기</title>
 </head>
 <body>
-<H1 th:text="${board.title}"></H1>
+<h1 th:text="${board.title}"></h1>
+
 <div>글쓴이 : <span th:text="${board.user.name}"></span></div>
 <div>제목 : <span th:text="${board.title}"></span></div>
 <div>조회수 : <span th:text="${board.viewCnt}"></span></div>
@@ -16,8 +17,47 @@
 <div>내용 : <span th:text="${board.content}"></span></div>
 
 <div><a href="/">목록보기</a></div>
+
 <!-- 로그인하지 않은 상황이라면 수정하기, 삭제하기 링크가 비활성화. 로그인한 사용자가 쓴 글인가? -->
-<div><a th:href="@{/updateform(boardId=${board.boardId})}">수정하기</a></div>
-<div><a th:href="@{/delete(boardId=${board.boardId})}">삭제하기</a></div>
+<div>
+    <a th:if="${loginInfo != null and loginInfo.userId == board.user.userId}"
+       th:href="@{/updateform(boardId=${board.boardId})}">수정하기</a>
+</div>
+<div>
+    <a th:if="${loginInfo != null and loginInfo.userId == board.user.userId}"
+       th:href="@{/delete(boardId=${board.boardId})}">삭제하기</a>
+</div>
+
+<!-- 댓글 목록 -->
+<h2>댓글</h2>
+<div id="comment-list">
+    <ul>
+        <li th:each="comment : ${comments}">
+            <p>
+                <strong th:text="${comment.user.name}"></strong>:
+                <span th:text="${comment.content}"></span>
+            </p>
+            <p>작성일: <span th:text="${comment.createdDate}"></span></p>
+        </li>
+    </ul>
+    <div th:if="${#lists.isEmpty(comments)}">
+        <p>댓글이 없습니다. 첫 댓글을 작성해보세요!</p>
+    </div>
+</div>
+
+<!-- 댓글 작성 -->
+<h3>댓글 작성</h3>
+<div th:if="${loginInfo != null}">
+    <form action="/comment" method="post">
+        <input type="hidden" name="boardId" th:value="${board.boardId}" />
+        <textarea name="content" placeholder="댓글 내용을 입력하세요" cols="50" rows="3" required></textarea><br />
+        <button type="submit">댓글 작성</button>
+    </form>
+</div>
+<div th:if="${loginInfo == null}">
+    <p>댓글 작성은 <a href="/loginform">로그인</a> 후 가능합니다.</p>
+</div>
+
 </body>
 </html>
+
