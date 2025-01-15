@@ -6,6 +6,8 @@ import lombok.Setter;
 import lombok.ToString;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -34,5 +36,8 @@ public class Board {
     @ManyToOne(fetch = FetchType.EAGER) // Lazy 대신 Eager 사용
     @JoinColumn(name = "userId", insertable = false, updatable = false)
     private User user;
+
+    @OneToMany(mappedBy = "board", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<HashTag> hashTags = new ArrayList<>();
 }
 

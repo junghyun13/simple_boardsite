@@ -15,6 +15,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Controller
@@ -133,6 +134,7 @@ public class MainController {
     public String write(
             @RequestParam("title") String title,
             @RequestParam("content") String content,
+            @RequestParam("tags") String tags,
             HttpSession session
     ) {
         LoginInfo loginInfo = (LoginInfo) session.getAttribute("loginInfo");
@@ -142,15 +144,16 @@ public class MainController {
             System.out.println("로그인 정보가 없습니다. 로그인 페이지로 리다이렉트합니다.");
             return "redirect:/loginform";
         }
-
+        List<String> tagList = Arrays.asList(tags.split(","));
         // 로그로 데이터 출력
         System.out.println("로그인 사용자 ID: " + loginInfo.getUserId());
         System.out.println("제목: " + title);
         System.out.println("내용: " + content);
+        System.out.println("테크: " + tags);
 
         try {
             // 게시글 저장 로직 호출
-            boardService.addBoard(loginInfo.getUserId(), title, content);
+            boardService.addBoard(loginInfo.getUserId(), title, content,tagList);
             System.out.println("게시글이 정상적으로 저장되었습니다.");
         } catch (Exception e) {
             // 예외 발생 시 로그 출력
@@ -161,6 +164,17 @@ public class MainController {
 
         // 정상적으로 저장된 경우 메인 페이지로 리다이렉트
         return "redirect:/";
+    }
+
+    @GetMapping("/search")
+    public String search(
+            @RequestParam("tag") String tag,
+            Model model
+    ) {
+        List<Board> boards = boardService.getBoardsByTag(tag);
+        model.addAttribute("list", boards);
+        model.addAttribute("tag", tag);
+        return "search";
     }
 
 

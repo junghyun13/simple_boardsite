@@ -6,7 +6,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>게시판 목록보기</title>
-    <link rel="stylesheet" href="board.css" />
+    <link rel="stylesheet" href="board.css"/>
 </head>
 <body>
 <section class="board">
@@ -37,6 +37,7 @@
                 <tr>
                     <th scope="col">번호</th>
                     <th scope="col">제목</th>
+                    <th scope="col">태그</th>
                     <th scope="col">조회수</th>
                     <th scope="col">작성자</th>
                     <th scope="col">등록일</th>
@@ -48,12 +49,18 @@
                     <td>
                         <a th:href="@{/board(boardId=${board.boardId})}" th:text="${board.title}"></a>
                     </td>
+                    <td>
+                        <span th:each="tag : ${board.hashTags}">
+                            <a th:href="@{/search(tag=${tag.tag})}" th:text="${tag.tag}">#</a>
+                            <span> </span>
+                        </span>
+                    </td>
                     <td th:text="${board.viewCnt}"></td>
                     <td th:text="${board.user.name}"></td>
                     <td th:text="${board.regdate.format(T(java.time.format.DateTimeFormatter).ofPattern('yyyy-MM-dd HH:mm'))}"></td>
                 </tr>
                 <tr th:if="${#lists.isEmpty(list)}">
-                    <td colspan="5">등록된 게시글이 없습니다.</td>
+                    <td colspan="6">등록된 게시글이 없습니다.</td>
                 </tr>
                 </tbody>
             </table>
@@ -75,4 +82,5 @@
 </section>
 </body>
 </html>
+
 

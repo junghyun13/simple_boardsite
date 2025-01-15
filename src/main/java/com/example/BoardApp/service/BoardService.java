@@ -2,7 +2,9 @@ package com.example.BoardApp.service;
 
 
 import com.example.BoardApp.dto.Board;
+import com.example.BoardApp.dto.HashTag;
 import com.example.BoardApp.repository.BoardRepository;
+import com.example.BoardApp.repository.HashTagRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
@@ -17,9 +19,10 @@ import java.util.List;
 public class BoardService {
 
     private final BoardRepository boardRepository;
+    private final HashTagRepository hashTagRepository;
 
 
-    public void addBoard(int userId, String title, String content) {
+    public void addBoard(int userId, String title, String content,List<String> tags) {
         Board board = new Board();
         board.setUserId(userId);
         board.setTitle(title);
@@ -27,6 +30,13 @@ public class BoardService {
         board.setRegdate(LocalDateTime.now());
         board.setViewCnt(0);
         boardRepository.save(board);
+        // 해시태그 저장
+        tags.forEach(tag -> {
+            HashTag hashTag = new HashTag();
+            hashTag.setTag(tag);
+            hashTag.setBoard(board);
+            hashTagRepository.save(hashTag);
+        });
     }
 
     public int getTotalCount() {
@@ -48,6 +58,13 @@ public class BoardService {
         boardRepository.save(board);
 
         return board;
+    }
+
+    public List<Board> getBoardsByTag(String tag) {
+        List<HashTag> hashTags = hashTagRepository.findByTag(tag);
+        return hashTags.stream()
+                .map(HashTag::getBoard)
+                .toList();
     }
 
 
